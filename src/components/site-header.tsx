@@ -15,7 +15,7 @@ export function SiteHeader({ activeUser, viewerLabel }: SiteHeaderProps) {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(211,164,178,0.4),rgba(163,140,255,0.25))] text-sm font-bold text-[#5d4451]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--emerald),var(--mustard-strong))] text-sm font-bold text-white shadow-[0_8px_20px_color-mix(in_srgb,var(--emerald)_35%,transparent)]">
               SL
             </div>
             <div>

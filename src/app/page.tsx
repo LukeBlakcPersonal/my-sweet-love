@@ -10,8 +10,8 @@ export default function Home() {
   return (
     <SiteFrame site={site}>
       <section id="inicio" className="glass relative overflow-hidden rounded-3xl p-6 sm:p-8">
-        <div className="absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[radial-gradient(circle,var(--violet),transparent_64%)] opacity-20" />
-        <div className="absolute -bottom-14 -left-10 h-44 w-44 rounded-full bg-[radial-gradient(circle,var(--green),transparent_64%)] opacity-18" />
+        <div className="absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[radial-gradient(circle,var(--green),transparent_64%)] opacity-34" />
+        <div className="absolute -bottom-14 -left-10 h-44 w-44 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--green)_78%,var(--mustard-strong)),transparent_64%)] opacity-30" />
         <p className="signal-chip">[ICONO_ABEJA: colocar en public/resources/icon-bee.svg]</p>
         <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">Estrellita + Lunita</h1>
         <p className="mt-3 max-w-3xl text-sm text-[#5f4656]/88 sm:text-base">
