@@ -5,6 +5,8 @@ export type MediaItem = {
   title: string;
   media_url: string;
   media_type: MediaKind;
+  cloudinary_public_id?: string | null;
+  cloudinary_resource_type?: "image" | "video" | "raw" | null;
   uploaded_by: string;
   uploaded_by_email?: string | null;
   uploaded_by_name?: string | null;

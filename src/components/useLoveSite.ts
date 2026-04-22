@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   LoveMessage,
   MediaItem,
@@ -55,6 +56,7 @@ function getTodayInputDate() {
 }
 
 export function useLoveSite() {
+  const router = useRouter();
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [messages, setMessages] = useState<LoveMessage[]>(demoMessages);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(demoPortfolio);
@@ -276,13 +278,20 @@ export function useLoveSite() {
       throw new Error(json.error ?? "No se pudo subir el archivo.");
     }
 
-    return json as { media_url: string; media_type: "image" | "video" | "audio" };
+    return json as {
+      media_url: string;
+      media_type: "image" | "video" | "audio";
+      cloudinary_public_id?: string | null;
+      cloudinary_resource_type?: "image" | "video" | "raw" | null;
+    };
   }
 
   async function persistMedia(item: {
     title: string;
     media_url: string;
     media_type: "image" | "video" | "audio";
+    cloudinary_public_id?: string | null;
+    cloudinary_resource_type?: "image" | "video" | "raw" | null;
     uploaded_by: string;
     uploaded_by_email?: string | null;
     uploaded_by_name?: string | null;
@@ -300,6 +309,93 @@ export function useLoveSite() {
     }
 
     return json.item as MediaItem;
+  }
+
+  async function renameMediaItem(item: MediaItem, nextTitle: string) {
+    if (!activeUser) {
+      setStatus("Inicia sesion para editar canciones.");
+      return false;
+    }
+
+    const title = nextTitle.trim();
+    if (!title) {
+      setStatus("El titulo no puede quedar vacio.");
+      return false;
+    }
+
+    setIsBusy(true);
+    try {
+      const response = await fetch("/api/media", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...getApiHeaders() },
+        body: JSON.stringify({
+          id: item.id,
+          title,
+          media_url: item.media_url,
+          media_type: item.media_type,
+          cloudinary_public_id: item.cloudinary_public_id ?? null,
+          cloudinary_resource_type: item.cloudinary_resource_type ?? null,
+          uploaded_by: item.uploaded_by,
+        }),
+      });
+
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error ?? "No se pudo renombrar la cancion.");
+      }
+
+      setMedia((prev) => prev.map((track) => (track.id === item.id ? { ...track, title } : track)));
+      setStatus("Nombre de la cancion actualizado.");
+      return true;
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "No se pudo renombrar la cancion.");
+      return false;
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function deleteMediaItem(item: MediaItem) {
+    if (!activeUser) {
+      setStatus("Inicia sesion para eliminar canciones.");
+      return false;
+    }
+
+    setIsBusy(true);
+    try {
+      const params = new URLSearchParams();
+      if (item.id) {
+        params.set("id", item.id);
+      }
+      if (item.media_url) {
+        params.set("media_url", item.media_url);
+      }
+      if (item.cloudinary_public_id) {
+        params.set("cloudinary_public_id", item.cloudinary_public_id);
+      }
+      if (item.cloudinary_resource_type) {
+        params.set("cloudinary_resource_type", item.cloudinary_resource_type);
+      }
+
+      const response = await fetch(`/api/media?${params.toString()}`, {
+        method: "DELETE",
+        headers: getApiHeaders(),
+      });
+
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error ?? "No se pudo eliminar la cancion.");
+      }
+
+      setMedia((prev) => prev.filter((track) => track.id !== item.id && track.media_url !== item.media_url));
+      setStatus("Cancion eliminada de Firebase y Cloudinary.");
+      return true;
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "No se pudo eliminar la cancion.");
+      return false;
+    } finally {
+      setIsBusy(false);
+    }
   }
 
   async function handleAuth(mode: "signin") {
@@ -359,6 +455,8 @@ export function useLoveSite() {
         title: uploadState.title || uploadFile.name,
         media_url: uploaded.media_url,
         media_type: uploaded.media_type,
+        cloudinary_public_id: uploaded.cloudinary_public_id ?? null,
+        cloudinary_resource_type: uploaded.cloudinary_resource_type ?? null,
         uploaded_by: uploadState.owner,
         uploaded_by_email: currentUserEmail,
         uploaded_by_name: effectiveIdentity?.name ?? uploadState.owner,
@@ -368,6 +466,10 @@ export function useLoveSite() {
       setUploadFile(null);
       setUploadState({ title: "", owner: uploadState.owner });
       setStatus("Archivo cargado y agregado al collage/biblioteca.");
+      
+      if (created.media_type === "audio") {
+        setTimeout(() => router.push("/musica"), 800);
+      }
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Error en subida.");
     } finally {
@@ -401,6 +503,8 @@ export function useLoveSite() {
           title: `Foto adjunta de ${messageAuthor}`,
           media_url: uploaded.media_url,
           media_type: uploaded.media_type,
+          cloudinary_public_id: uploaded.cloudinary_public_id ?? null,
+          cloudinary_resource_type: uploaded.cloudinary_resource_type ?? null,
           uploaded_by: messageAuthor,
           uploaded_by_email: currentUserEmail,
           uploaded_by_name: effectiveIdentity?.name ?? messageAuthor,
@@ -624,6 +728,8 @@ export function useLoveSite() {
     updateIdentityField,
     saveIdentityProfile,
     removePortfolioItem,
+    renameMediaItem,
+    deleteMediaItem,
     allowedPartnerEmails,
   };
 }

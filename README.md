@@ -42,10 +42,10 @@ FIREBASE_CLIENT_EMAIL=
 FIREBASE_PRIVATE_KEY=
 
 # Cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
-CLOUDINARY_UPLOAD_PRESET=
+CLOUDINARY_UPLOAD_FOLDER=estrellita-lunita
 ```
 
 ## Configuracion en Firebase
@@ -69,9 +69,10 @@ Los endpoints crean y leen documentos con esos nombres. No necesitas crear docum
 ## Configuracion de Cloudinary
 
 1. Crea una cuenta en Cloudinary.
-2. Define un upload preset para el flujo del cliente.
-3. Coloca el cloud name, api key, api secret y upload preset en `.env.local`.
-4. Verifica que las cargas admitan imagen, video y audio con `resource_type=auto`.
+2. Copia Cloud name, API Key y API Secret desde el Dashboard.
+3. Coloca esas claves en `.env.local` con los nombres exactos de arriba.
+4. Define `CLOUDINARY_UPLOAD_FOLDER` para agrupar archivos (por ejemplo, `estrellita-lunita`).
+5. Verifica que las cargas admitan imagen, video y audio con `resource_type=auto` (ya viene configurado en el endpoint).
 
 ## Desarrollo local
 

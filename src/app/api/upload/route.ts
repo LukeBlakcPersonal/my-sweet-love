@@ -2,11 +2,30 @@ import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
 import { env, hasCloudinaryEnv } from "@/lib/env";
 
-function detectType(resourceType: string, mimeType: string | null) {
+const AUDIO_FORMATS = new Set(["mp3", "m4a", "wav", "ogg", "aac", "flac"]);
+const AUDIO_PATH_PATTERN = /\.(mp3|m4a|wav|ogg|aac|flac)(?:$|[?#\s])/i;
+
+function detectType(
+  resourceType: string,
+  mimeType: string | null,
+  format: string | null,
+  secureUrl: string | null,
+  originalFilename: string | null,
+) {
+  const normalizedMime = (mimeType ?? "").toLowerCase();
+  const normalizedFormat = (format ?? "").toLowerCase();
+  const probePath = `${secureUrl ?? ""} ${originalFilename ?? ""}`;
+
+  const isAudio =
+    normalizedMime.startsWith("audio/") ||
+    AUDIO_FORMATS.has(normalizedFormat) ||
+    AUDIO_PATH_PATTERN.test(probePath);
+
+  if (isAudio) {
+    return "audio";
+  }
+
   if (resourceType === "video") {
-    if (mimeType?.includes("audio")) {
-      return "audio";
-    }
     return "video";
   }
 
@@ -57,11 +76,19 @@ export async function POST(request: Request) {
     stream.end(buffer);
   });
 
-  const mediaType = detectType(uploadResult.resource_type, file.type || null);
+  const mediaType = detectType(
+    uploadResult.resource_type,
+    file.type || null,
+    uploadResult.format ?? null,
+    uploadResult.secure_url ?? null,
+    uploadResult.original_filename ?? null,
+  );
 
   return NextResponse.json({
     media_url: uploadResult.secure_url,
     media_type: mediaType,
+    cloudinary_public_id: uploadResult.public_id ?? null,
+    cloudinary_resource_type: uploadResult.resource_type ?? null,
     title,
   });
 }
